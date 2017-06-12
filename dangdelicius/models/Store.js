@@ -18,13 +18,32 @@ const storeSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    tags: [String]
+    tags: [String],
+    created: {
+        type: Date,
+        default: Date.now
+    },
+    location: {
+        type: {
+            type: String,
+            default: 'Point'
+        },
+        coordinates: [{
+            type: Number,
+            required: 'You must supplies coordinates'
+        }],
+        address: {
+            type: String,
+            required: 'You must supplie and Adress'
+        }
+    }
+
 })
 
 //Antes de salvar la tienda introducido, haz lo siguiente coger el numbre y aplicarle la funcion slug que defini en lso helpers. Y cuando acaba de salva con el next();
 //solo aplicamos el slug cuando el nombre ha sido modificado si no saltamos.
-storeSchema.pre('save', function(next){
-    if(!this.isModified('name')){
+storeSchema.pre('save', function (next) {
+    if (!this.isModified('name')) {
         next(); //pasa al siguiente
         return; //acaba la funcion
     }
