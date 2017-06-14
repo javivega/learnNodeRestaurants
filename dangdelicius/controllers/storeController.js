@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Store = mongoose.model('Store');
+const jimp = require('jimp');
+const uuid = require('uuid');
 
 //multer manejara la subida de los archivos
 const multer = require('multer');
@@ -29,7 +31,31 @@ exports.addStore = (req, res) => {
 }
 
 //podemos manejar varios archivos en la subida pero con single le decimos que solo el campo photo
+//multer pone el file en el req.file
 exports.upload = multer(multerOptions).single('photo')
+
+//creamos el middleware para redimensionar las fotos que suba con multer, pasamos next porque no renderizaremos nada
+//sino que recibiremos el file que guarde multer y lo redimensionamos y lo pasamos para crear la tienda.
+exports.resize = async(req, res, next) => {
+    //si no hay archivo pasa al siguiente middleware, multer pone el archivo subido en la propidad file del request
+    if(!req.file){
+        next(); //salta al siguiente middleware
+        return;
+    }
+
+    //el req.file donde se guarda el archivo con multer tiene una propiedad buffer que es el archivo en memoria
+    //por otro lado en la propiedad mimetype se guarda el formato del archivo inferido desde el servidor. lo saco con split
+
+    const extension = req.file.mimetype.split('/')[1];
+    //Establezco el valor de la propiedad foto que la paso en la creaccion de la tienda en req.body.photo
+    //el uuida module nos devuelve un numero unico y le pongo la extension obteniendo algo como 234324324.jpg
+    req.body.photo = `${uuid.v4()}.${extension}`
+    //redimensionamos la foto con jimp que pide un file path o un buffer del archivo en memoria
+    const photo = await jimp.read(req.file.buffer); //como jimp se basa en promesas la resuelvo con await
+    await photo.resize(800, jimp.AUTO);
+    await photo.write(`./public/uploads/${req.body.photo}`)
+    next();//llama al siguiente middleware
+}
 
 exports.createStore = async (req, res) => {
     const store = await (new Store(req.body)).save();

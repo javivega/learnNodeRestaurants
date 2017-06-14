@@ -8,8 +8,13 @@ router.get('/', catchErrors(storeController.getStores));
 router.get('/stores',catchErrors(storeController.getStores));
 
 router.get('/add', storeController.addStore);
+//Cuando hago un post de una tienda primero la subimos usando multer, luego la redimentsionamos con jim y creamos la tienda.
+router.post('/add', 
+    storeController.upload, 
+    catchErrors(storeController.resize), 
+    catchErrors(storeController.createStore)
+);
 
-router.post('/add', catchErrors(storeController.createStore));
 router.post('/add/:id', catchErrors(storeController.updateStore));
 router.get('/stores/:id/edit', catchErrors(storeController.editStore));
 
