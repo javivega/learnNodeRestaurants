@@ -9,13 +9,13 @@ const multer = require('multer');
 //sea del tipo imagen y si es asi que prosiga con la subida.
 const multerOptions = {
     storage: multer.memoryStorage(),
-    fileFilter(req, file, next){
+    fileFilter(req, file, next) {
         const isPhoto = file.mimetype.startsWith('/image');
-        if(isPhoto){
+        if (isPhoto) {
             //con este le decimos que si el tipo de archivo es una foto prosiga con la subida
             next(null, true);
         } else {
-            next({message: 'No es un tipo de archivo permitido'}, false);
+            next({ message: 'No es un tipo de archivo permitido' }, false);
         }
     }
 };
@@ -36,9 +36,9 @@ exports.upload = multer(multerOptions).single('photo')
 
 //creamos el middleware para redimensionar las fotos que suba con multer, pasamos next porque no renderizaremos nada
 //sino que recibiremos el file que guarde multer y lo redimensionamos y lo pasamos para crear la tienda.
-exports.resize = async(req, res, next) => {
+exports.resize = async (req, res, next) => {
     //si no hay archivo pasa al siguiente middleware, multer pone el archivo subido en la propidad file del request
-    if(!req.file){
+    if (!req.file) {
         next(); //salta al siguiente middleware
         return;
     }
@@ -73,15 +73,22 @@ exports.editStore = async (req, res) => {
     res.render('editStore', { title: 'Edit Store', store })
 }
 
-exports.updateStore = async(req, res) => {
+exports.getSingleStore = async (req, res) => {
+    const store = await Store.findOne({ slug: req.params.storeName });
+    if(!store) return next();
+    res.render('singleStore', { title: store.name, store })
+}
+
+exports.updateStore = async (req, res) => {
     req.body.location.type = 'Point';
     //el metodo findoneandupdate coge tres parametros que son en ordenL la query, los datos, y opciones
     //el new true hace que se retorne una nueva tienda en lugar de la vieja
     //el runvalidators fuerza al modelo a comprobar los campos requeridos en el modelo, tambien en la actualizacion
     //pues por defecto son se chequean en la creacción de nuevos documentos.
-    const store = await Store.findOneAndUpdate({_id: req.params.id}, req.body, {
-        new: true, 
-        runValidators: true} 
+    const store = await Store.findOneAndUpdate({ _id: req.params.id }, req.body, {
+        new: true,
+        runValidators: true
+    }
     ).exec();
     req.flash('success', 'Succesfully updated');
     res.redirect(`/stores/${store._id}/edit`);

@@ -21,6 +21,8 @@ router.post('/add/:id',
     catchErrors(storeController.updateStore)
 );
 
+router.get('/store/:storeName', catchErrors(storeController.getSingleStore));
+
 
 router.get('/stores/:id/edit', catchErrors(storeController.editStore));
 
