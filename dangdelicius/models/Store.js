@@ -55,12 +55,27 @@ storeSchema.pre('save', async function (next) {
     const storesWithSlug = await this.constructor.find({ slug: slugRegEx });
     //si hay mas de uno entonces la length sera mayor que 0 y entonces al slug le añado la length mas uno, para generar
     //el nuevo slug
-    if(storesWithSlug.length){
+    if (storesWithSlug.length) {
         this.slug = `${this.slug}-${storesWithSlug.length + 1}`;
     }
 
     next();
 })
+
+storeSchema.statics.getTagsList = function () {
+    //aggregate coge un array de posibles operators de lo que estamos buscando
+    //Usaremos el operator unwild que lo que hace es en un item con multiples tags los separa en items individuales por tag
+    //El this de este metodo hace referencia al modelo: Store, osea es como si pusieramos Store.aggregate
+    //El operador $group agrupa, en nuestro caso agruparé por tags, que se lo paso en las opciones
+    //A parte a cada uno de los grupos le añado una nueva propiedad count y cada vez que encuentra otro elemento con dicho
+    //tag le suma 1 al contador del grupo indicandome cuantos elementos hay en dicho grupo
+    //Con sort ordenamos los resultados de mayor a menor, esto completa el pipeline de input y outputs.
+    return this.aggregate([
+        { $unwind: '$tags' },
+        { $group: { _id: '$tags', count: { $sum: 1 } } },
+        { $sort: {count: -1}}
+    ])
+}
 
 //exporto el modelo Store que se corresponde con el schema creado.
 module.exports = mongoose.model('Store', storeSchema)

@@ -75,7 +75,7 @@ exports.editStore = async (req, res) => {
 
 exports.getSingleStore = async (req, res) => {
     const store = await Store.findOne({ slug: req.params.storeName });
-    if(!store) return next();
+    if (!store) return next();
     res.render('singleStore', { title: store.name, store })
 }
 
@@ -94,4 +94,10 @@ exports.updateStore = async (req, res) => {
     res.redirect(`/stores/${store._id}/edit`);
 
     //el .exec hace que se envie la query, que por defecto no se envia.
+}
+
+exports.getStoresByTag = async (req, res) => {
+    const tags = await Store.getTagsList();
+    const tag = req.params.tag;
+    res.render('tags', {tags, title: 'Tags', tag})
 }
